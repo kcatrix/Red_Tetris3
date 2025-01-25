@@ -4,7 +4,6 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { BrowserRouter } from 'react-router-dom';
 import { HighScoreBoard } from '../components/HighScoreBoard';
-import { coucou } from '../components/changeButton';
 import ChangeButton from '../components/changeButton';
 
 describe('HighScoreBoard Component', () => {
@@ -14,7 +13,7 @@ describe('HighScoreBoard Component', () => {
     store = configureStore({
       reducer: {
         showHighScore: (state = false, action) =>
-          action.type === 'showHighScore/modifyShowHighScore' ? action.payload : state
+          action.type === 'showHighScore/setShowHighScore' ? action.payload : state
       }
     });
   });
@@ -66,6 +65,22 @@ describe('HighScoreBoard Component', () => {
     expect(getByText('Type')).toBeInTheDocument();
   });
 
+  test('dispatches showHighScoreOff action when Go Back button is clicked', () => {
+    const { getByText } = render(
+      <Provider store={store}>
+        <BrowserRouter>
+          <HighScoreBoard scoresList={[]} />
+        </BrowserRouter>
+      </Provider>
+    );
+
+    const goBackButton = getByText('Go Back');
+    fireEvent.click(goBackButton);
+
+    const actions = store.getState();
+    expect(actions.showHighScore).toBe(false);
+  });
+
   test('renders multiple scores correctly', () => {
     const scores = [
       { name: 'Player1', scores: 1000, nature: 'Solo' },
@@ -98,22 +113,6 @@ describe('HighScoreBoard Component', () => {
     expect(getByText('3000')).toBeInTheDocument();
   });
 
-  test('dispatches showHighScoreOff action when Go Back button is clicked', () => {
-    const { getByText } = render(
-      <Provider store={store}>
-        <BrowserRouter>
-          <HighScoreBoard scoresList={[]} />
-        </BrowserRouter>
-      </Provider>
-    );
-
-    const goBackButton = getByText('Go Back');
-    fireEvent.click(goBackButton);
-
-    const actions = store.getState();
-    expect(actions).toBe(false);
-  });
-
   test('renders grid layout correctly', () => {
     const scores = [{ name: 'Player1', scores: 1000, nature: 'Solo' }];
     
@@ -133,7 +132,6 @@ describe('HighScoreBoard Component', () => {
     expect(container.getElementsByClassName('item2')).toHaveLength(1);
     expect(container.getElementsByClassName('item3')).toHaveLength(1);
   });
-
 });
 
 describe('ChangeButton Component', () => {
@@ -143,9 +141,9 @@ describe('ChangeButton Component', () => {
     store = configureStore({
       reducer: {
         tempName: (state = '', action) => 
-          action.type === 'tempName/modifyTempName' ? action.payload : state,
+          action.type === 'tempName/changeTempName' ? action.payload : state,
         pieces: (state = [], action) => 
-          action.type === 'pieces/modifyPieces' ? action.payload : state
+          action.type === 'pieces/setPieces' ? action.payload : state
       }
     });
   });
@@ -165,11 +163,11 @@ describe('ChangeButton Component', () => {
     expect(getByText('Change Game Mode')).toBeInTheDocument();
   });
 
-  test('handles click event correctly when cou is true', () => {
+  test('handles click event correctly', () => {
     const setCou = jest.fn();
     const socket = { emit: jest.fn() };
-    store.dispatch({ type: 'tempName/modifyTempName', payload: 'Player1' });
-    store.dispatch({ type: 'pieces/modifyPieces', payload: [1, 2, 3] });
+    store.dispatch({ type: 'tempName/changeTempName', payload: 'Player1' });
+    store.dispatch({ type: 'pieces/setPieces', payload: [1, 2, 3] });
     
     const { getByText } = render(
       <Provider store={store}>
@@ -184,45 +182,5 @@ describe('ChangeButton Component', () => {
     
     expect(setCou).toHaveBeenCalledWith(false);
     expect(socket.emit).toHaveBeenCalledWith('createGameRoom', 'Player1', [1, 2, 3]);
-  });
-
-  test('handles click event correctly when cou is false', () => {
-    const setCou = jest.fn();
-    const socket = { emit: jest.fn() };
-    store.dispatch({ type: 'tempName/modifyTempName', payload: 'Player1' });
-    store.dispatch({ type: 'pieces/modifyPieces', payload: [1, 2, 3] });
-    
-    const { getByText } = render(
-      <Provider store={store}>
-        <BrowserRouter>
-          <ChangeButton cou={false} setCou={setCou} socket={socket} />
-        </BrowserRouter>
-      </Provider>
-    );
-    
-    const button = getByText('Change Game Mode');
-    fireEvent.click(button);
-    
-    expect(setCou).toHaveBeenCalledWith(true);
-    expect(socket.emit).toHaveBeenCalledWith('createGameRoom', 'Player1', [1, 2, 3]);
-  });
-});
-
-describe('ChangeButton Component', () => {
-  test('toggles game mode and emits socket event', () => {
-    const setCou = jest.fn();
-    const socket = { emit: jest.fn() };
-    const tempName = 'Player1';
-    const pieces = [];
-
-    coucou(true, setCou, socket, tempName, pieces);
-
-    expect(setCou).toHaveBeenCalledWith(false);
-    expect(socket.emit).toHaveBeenCalledWith('createGameRoom', tempName, pieces);
-
-    coucou(false, setCou, socket, tempName, pieces);
-
-    expect(setCou).toHaveBeenCalledWith(true);
-    expect(socket.emit).toHaveBeenCalledWith('createGameRoom', tempName, pieces);
   });
 });

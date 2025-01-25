@@ -114,3 +114,114 @@ describe('Multigame Actions', () => {
     expect(state.leader).toBe(false);
   });
 });
+
+import React from 'react';
+import { render, screen } from '@testing-library/react';
+import { Provider } from 'react-redux';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import * as reducers from '../reducers';
+import MultiGame from '../multigame';
+
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => jest.fn(),
+  useLocation: () => ({
+    pathname: '/',
+    search: '',
+    hash: '',
+    state: null
+  })
+}));
+
+describe('MultiGame Component', () => {
+  let store;
+
+  beforeEach(() => {
+    store = configureStore({
+      reducer: {
+        rows: reducers.rowsReducer,
+        piece: reducers.pieceReducer,
+        positions: reducers.positionsReducer,
+        score: reducers.scoreReducer,
+        malus: reducers.malusReducer,
+        multi: reducers.multiReducer,
+        players: reducers.playersReducer,
+        url: reducers.urlReducer,
+        gameOver: reducers.gameOverReducer,
+      }
+    });
+  });
+
+  test('renders multiplayer game board', () => {
+    render(
+      <Provider store={store}>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<MultiGame />} />
+          </Routes>
+        </BrowserRouter>
+      </Provider>
+    );
+
+    const gameBoard = screen.getByTestId('multi-game-board');
+    expect(gameBoard).toBeInTheDocument();
+  });
+
+  test('displays player scores', () => {
+    const players = [
+      { id: 'player1', score: 100 },
+      { id: 'player2', score: 200 }
+    ];
+
+    store.dispatch({ type: 'players/setPlayers', payload: players });
+
+    render(
+      <Provider store={store}>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<MultiGame />} />
+          </Routes>
+        </BrowserRouter>
+      </Provider>
+    );
+
+    const player1Score = screen.getByText('Score: 100');
+    const player2Score = screen.getByText('Score: 200');
+    expect(player1Score).toBeInTheDocument();
+    expect(player2Score).toBeInTheDocument();
+  });
+
+  test('shows game over message when game ends', () => {
+    store.dispatch({ type: 'gameOver/setGameOver', payload: true });
+
+    render(
+      <Provider store={store}>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<MultiGame />} />
+          </Routes>
+        </BrowserRouter>
+      </Provider>
+    );
+
+    const gameOverMessage = screen.getByText(/game over/i);
+    expect(gameOverMessage).toBeInTheDocument();
+  });
+
+  test('displays malus counter', () => {
+    store.dispatch({ type: 'malus/setMalus', payload: 2 });
+
+    render(
+      <Provider store={store}>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<MultiGame />} />
+          </Routes>
+        </BrowserRouter>
+      </Provider>
+    );
+
+    const malusCounter = screen.getByText('Malus: 2');
+    expect(malusCounter).toBeInTheDocument();
+  });
+});

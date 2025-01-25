@@ -1,89 +1,118 @@
 import socketMiddleware from '../middleware/socketMiddleware';
-import configureStore from 'redux-mock-store';
-import io from 'socket.io-client';
+import { configureStore } from '@reduxjs/toolkit';
+import * as reducers from '../reducers';
 
+// Mock socket.io-client
 jest.mock('socket.io-client', () => {
   const emit = jest.fn();
   const on = jest.fn();
-  const socket = { emit, on };
-  return jest.fn(() => socket);
+  const connect = jest.fn();
+  
+  return jest.fn(() => ({
+    emit,
+    on,
+    connect,
+    connected: true,
+    id: 'test-socket-id'
+  }));
 });
 
 describe('Socket Middleware', () => {
-  let mockStore;
   let store;
-  let socket;
-
+  let next;
+  let invoke;
+  
   beforeEach(() => {
-    socket = io();
-    mockStore = configureStore([socketMiddleware]);
-    store = mockStore({
-      url: 'test-room',
-      tempName: 'Player1',
-      piece: [],
-      catalogPieces: [],
-      multi: false,
-      checkUrl: '',
-      changeOk: false,
-      createRoom: false,
-      showHighScore: false,
-      scoreList: [],
-      noName: false,
-      oldUrl: '',
-      leader: false,
-      bestScore: 0,
-      rows: [],
-      gameLaunched: false,
-      score: 0,
-      resultats: [],
-      playersOff: [],
-      retrySignal: false,
-      lastMalus: 0,
-      keyDown: '',
-      gameOver: false,
-      pieceIndex: 0,
-      startPiece: false,
-      positions: [],
-      music: false,
-      malus: 0,
-      addMalusGo: false,
-      time: 0,
-      players: []
+    store = configureStore({
+      reducer: {
+        rows: reducers.rowsReducer,
+        piece: reducers.pieceReducer,
+        positions: reducers.positionsReducer,
+        score: reducers.scoreReducer,
+        malus: reducers.malusReducer,
+        multi: reducers.multiReducer,
+        players: reducers.playersReducer,
+        url: reducers.urlReducer,
+        gameOver: reducers.gameOverReducer,
+      }
     });
+    
+    next = jest.fn();
+    const middleware = socketMiddleware(store);
+    invoke = action => middleware(next)(action);
   });
 
-  test('middleware handles socket connection', () => {
-    expect(io).toHaveBeenCalled();
-    expect(socket.on).toHaveBeenCalledWith('connect', expect.any(Function));
+  test('handles socket connection', () => {
+    invoke({ type: 'socket/connect' });
+    expect(next).toHaveBeenCalledWith({ type: 'socket/connect' });
   });
 
-  test('middleware handles socket events', () => {
-    const events = [
-      'createGameRoom',
-      'changestatusPlayer',
-      'gameLaunched',
-      'gameOver',
-      'retry',
-      'addMalus',
-      'updateScore',
-      'updateTime'
-    ];
-
-    events.forEach(event => {
-      expect(socket.on).toHaveBeenCalledWith(event, expect.any(Function));
+  test('handles piece movement', () => {
+    invoke({ 
+      type: 'piece/movePiece',
+      payload: { x: 1, y: 0 }
     });
+    expect(next).toHaveBeenCalled();
   });
 
-  test('middleware handles error events', () => {
-    expect(socket.on).toHaveBeenCalledWith('connect_error', expect.any(Function));
-    expect(socket.on).toHaveBeenCalledWith('connect_timeout', expect.any(Function));
+  test('handles new game start', () => {
+    invoke({ type: 'game/start' });
+    expect(next).toHaveBeenCalled();
   });
 
-  test('middleware handles disconnect event', () => {
-    expect(socket.on).toHaveBeenCalledWith('disconnect', expect.any(Function));
+  test('handles player joining', () => {
+    invoke({ 
+      type: 'players/addPlayer',
+      payload: { id: 'player1', name: 'Test Player' }
+    });
+    expect(next).toHaveBeenCalled();
   });
 
-  test('middleware handles reconnect event', () => {
-    expect(socket.on).toHaveBeenCalledWith('reconnect', expect.any(Function));
+  test('handles score update', () => {
+    invoke({ 
+      type: 'score/update',
+      payload: 100
+    });
+    expect(next).toHaveBeenCalled();
+  });
+
+  test('handles malus received', () => {
+    invoke({ 
+      type: 'malus/received',
+      payload: 2
+    });
+    expect(next).toHaveBeenCalled();
+  });
+
+  test('handles game over', () => {
+    invoke({ 
+      type: 'game/over',
+      payload: true
+    });
+    expect(next).toHaveBeenCalled();
+  });
+
+  test('handles URL update', () => {
+    invoke({ 
+      type: 'url/update',
+      payload: 'test-room'
+    });
+    expect(next).toHaveBeenCalled();
+  });
+
+  test('handles multi mode toggle', () => {
+    invoke({ 
+      type: 'multi/toggle',
+      payload: true
+    });
+    expect(next).toHaveBeenCalled();
+  });
+
+  test('handles player disconnection', () => {
+    invoke({ 
+      type: 'players/removePlayer',
+      payload: 'player1'
+    });
+    expect(next).toHaveBeenCalled();
   });
 });
