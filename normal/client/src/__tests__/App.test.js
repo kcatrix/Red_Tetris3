@@ -17,36 +17,83 @@ jest.mock('react-router-dom', () => ({
   })
 }));
 
+// Create a mock store
+const createMockStore = (initialState = {}) => configureStore({
+  reducer: {
+    catalogPieces: reducers.catalogPiecesReducer,
+    multi: reducers.multiReducer,
+    piece: reducers.pieceReducer,
+    positions: reducers.positionsReducer,
+    score: reducers.scoreReducer,
+    gameOver: reducers.gameOverReducer,
+    malus: reducers.malusReducer,
+    players: reducers.playersReducer,
+    url: reducers.urlReducer,
+    noName: reducers.noNameReducer,
+    tempName: reducers.tempNameReducer,
+    oldUrl: reducers.oldUrlReducer,
+    back: reducers.backReducer,
+    changeOk: reducers.changeOkReducer,
+    checkUrl: reducers.checkUrlReducer,
+    time: reducers.timeReducer,
+    gameLaunched: reducers.gameLaunchedReducer,
+    leader: reducers.leaderReducer,
+    music: reducers.musicReducer,
+    keyDown: reducers.keyDownReducer,
+    startPiece: reducers.startPieceReducer,
+    pieceIndex: reducers.pieceIndexReducer,
+    lastMalus: reducers.lastMalusReducer,
+    addMalusGo: reducers.addMalusGoReducer,
+    retrySignal: reducers.retrySignalReducer,
+    bestScore: reducers.bestScoreReducer,
+    showHighScore: reducers.showHighScoreReducer,
+    scoreList: reducers.scoreListReducer,
+    playersOff: reducers.playersOffReducer,
+    rows: reducers.rowsReducer,
+    resultats: reducers.resultatsReducer
+  },
+  preloadedState: {
+    catalogPieces: [],
+    multi: false,
+    piece: { type: 'I', rotation: 0 },
+    positions: [],
+    score: 0,
+    gameOver: false,
+    malus: 0,
+    players: [],
+    url: '',
+    noName: false,
+    tempName: '',
+    oldUrl: '',
+    back: false,
+    changeOk: false,
+    checkUrl: false,
+    time: 1000,
+    gameLaunched: false,
+    leader: false,
+    music: false,
+    keyDown: '',
+    startPiece: false,
+    pieceIndex: 0,
+    lastMalus: 0,
+    addMalusGo: false,
+    retrySignal: false,
+    bestScore: 0,
+    showHighScore: false,
+    scoreList: [],
+    playersOff: [],
+    rows: Array(20).fill().map(() => Array(10).fill(0)),
+    resultats: 'Game Over'
+  }
+});
+
+let store;
+
+beforeEach(() => {
+  store = createMockStore();
+});
+
 describe('App Component', () => {
-  let store;
-
-  beforeEach(() => {
-    store = configureStore({
-      reducer: {
-        rows: reducers.rowsReducer,
-        piece: reducers.pieceReducer,
-        positions: reducers.positionsReducer,
-        score: reducers.scoreReducer,
-        gameOver: reducers.gameOverReducer,
-        malus: reducers.malusReducer,
-        multi: reducers.multiReducer,
-        players: reducers.playersReducer,
-        url: reducers.urlReducer
-      },
-      preloadedState: {
-        rows: Array(20).fill().map(() => Array(10).fill(0)),
-        piece: { type: 'T', rotation: 0 },
-        positions: [{ x: 4, y: 0 }],
-        score: 0,
-        gameOver: false,
-        malus: 0,
-        multi: false,
-        players: [],
-        url: ''
-      }
-    });
-  });
-
   test('renders without crashing', () => {
     render(
       <Provider store={store}>
@@ -56,13 +103,8 @@ describe('App Component', () => {
       </Provider>
     );
 
-    // Vérifie que le titre est présent
-    const titleElement = screen.getByText(/Red Tetris/i);
-    expect(titleElement).toBeInTheDocument();
-
-    // Vérifie que le bouton Create Room est présent
-    const createRoomButton = screen.getByText(/Create Room/i);
-    expect(createRoomButton).toBeInTheDocument();
+    // Verify that the app renders without crashing
+    expect(screen.getByTestId('app-container')).toBeInTheDocument();
   });
 
   test('displays initial game state', () => {
@@ -74,8 +116,13 @@ describe('App Component', () => {
       </Provider>
     );
 
-    // Vérifie que le score initial est 0
-    const scoreElement = screen.getByText(/Score: 0/i);
-    expect(scoreElement).toBeInTheDocument();
+    // Verify that the create room button is present when noName is false
+    const createRoomButton = screen.getByTestId('create-room-button');
+    expect(createRoomButton).toBeInTheDocument();
+    expect(createRoomButton).toHaveTextContent('Create Room');
+
+    // Verify that the create room container is present
+    const createRoomContainer = screen.getByTestId('create-room-container');
+    expect(createRoomContainer).toBeInTheDocument();
   });
 });

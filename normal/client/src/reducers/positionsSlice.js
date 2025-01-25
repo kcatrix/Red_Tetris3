@@ -29,4 +29,3 @@ export const { resetPositions, modifyPositions, newPositions } = positionsSlice.
 export default positionsSlice.reducer;
 
 export const selectPositions = (state) => state.positions
-

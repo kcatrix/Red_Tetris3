@@ -59,17 +59,15 @@ function MultiGame() {
 
 	let intervalId;
 
-	useEffect(() => { // remplacable par un dispatch({ message a la con })
-
+	useEffect(() => { 
 		dispatch({ type: 'LEADER_OR_NOT' })
 	}, []);
 
-	useEffect(() => { // continuité du useEffect du dessus
-
-		dispatch({ type: 'LEADER_REP' }) // avec variable url et tempName
+	useEffect(() => { 
+		dispatch({ type: 'LEADER_REP' }) 
 	}, [])
 
-	useEffect(() => { // lors du dispatch de down, je peux utiliser le middleWare
+	useEffect(() => { 
 		if (down) {
 			dispatch({ type: 'SET_HIGHER_POS' })
 			setDown(false)
@@ -80,23 +78,12 @@ function MultiGame() {
 		dispatch({ type: 'LAUNCH_GAME' })
 	}, [])
 
-	if (!gameLaunched)
-		dispatch({ type: 'NAME_PLAYER' })
-
-	dispatch({ type: 'RETRY_SIGNAL' })
-
 	useEffect(() => {
-		if (retrySignal) {
-			setPosition(prevPosition => {
-				const newPosition = [...prevPosition];
-				newPosition[pieceIndex] = { x: 4, y: 0 };
-				return newPosition;
-			});
-			setPlay(false)
+		if (!gameLaunched) {
+			dispatch({ type: 'NAME_PLAYER' })
 		}
-		dispatch(modifyRows(Array.from({ length: 20 }, () => Array(10).fill(0))))
-		dispatch(retrySignalOff())
-	}, [retrySignal])
+		dispatch({ type: 'RETRY_SIGNAL' })
+	}, [gameLaunched])
 
 	useEffect(() => {
 		dispatch({ type: 'PLAYER_DISCONNECTED'})
@@ -109,7 +96,6 @@ function MultiGame() {
 	}, [])
 
 	useEffect(() => {
-		
 		dispatch({ type: 'NEW_LEADER'})
 	}, [])
 
@@ -122,12 +108,10 @@ function MultiGame() {
 	}, [addMalusGo])
 
 	useEffect(() => {
-
 		dispatch({ type: 'HIGHER_POS' })
 	}, [Players]);
   
 	useEffect(() => {
-
 		if (addMalusGo) {
 					dispatch(modifyRows(addMalusLines(addMalusGo, pieces[pieceIndex])))
 					dispatch(addLastMalus(addMalusGo))
@@ -611,7 +595,7 @@ function MultiGame() {
   
 	return (
   
-		<div className="App">
+		<div className="App" data-testid="multi-game-board">
 			<div className="Opponents">
         {gameover === false && 
           <div className="board1">
@@ -633,8 +617,8 @@ function MultiGame() {
 				<button onClick={Retry}> Retry </button>}
 				<div className='score'>
 					<h3> {name} </h3>
+					<h4>Score: {score}</h4>
 				</div>
-				
 				{gameover == false &&
 				<div className="board">
 						{rows.map((row, i) => (
@@ -646,6 +630,12 @@ function MultiGame() {
 						))}
 					</div>
 					}
+				{Players.map((player, index) => (
+					<div key={index} className='score'>
+						<h3>{player.name}</h3>
+						<h4>Score: {player.score}</h4>
+					</div>
+				))}
 				<div className="button">
 					{gameover == false && leader == true && gameLaunched == false &&
 						<button onClick={launchGame}>Launch Game</button>

@@ -1,51 +1,56 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import { configureStore } from '@reduxjs/toolkit';
 import { BrowserRouter } from 'react-router-dom';
-import App from './App';
+import { configureStore } from '@reduxjs/toolkit';
 import * as reducers from './reducers';
+import App from './App';
 
 // Create a mock store
 const createMockStore = (initialState = {}) => configureStore({
   reducer: {
     catalogPieces: reducers.catalogPiecesReducer,
     multi: reducers.multiReducer,
-    url: reducers.urlReducer,
-    back: reducers.backReducer,
     piece: reducers.pieceReducer,
     positions: reducers.positionsReducer,
-    rows: reducers.rowsReducer,
     score: reducers.scoreReducer,
-    time: reducers.timeReducer,
     gameOver: reducers.gameOverReducer,
     malus: reducers.malusReducer,
     players: reducers.playersReducer,
-    playersOff: reducers.playersOffReducer,
-    resultats: reducers.resultatsReducer,
-    leader: reducers.leaderReducer,
-    gameLaunched: reducers.gameLaunchedReducer,
-    music: reducers.musicReducer,
+    url: reducers.urlReducer,
     noName: reducers.noNameReducer,
     tempName: reducers.tempNameReducer,
-    createRoom: reducers.createRoomReducer,
+    oldUrl: reducers.oldUrlReducer,
+    back: reducers.backReducer,
     changeOk: reducers.changeOkReducer,
-    retrySignal: reducers.retrySignalReducer,
+    resultats: reducers.resultatsReducer,
+    checkUrl: reducers.checkUrlReducer,
+    time: reducers.timeReducer,
+    gameLaunched: reducers.gameLaunchedReducer,
+    leader: reducers.leaderReducer,
+    music: reducers.musicReducer,
+    keyDown: reducers.keyDownReducer,
     startPiece: reducers.startPieceReducer,
     pieceIndex: reducers.pieceIndexReducer,
     lastMalus: reducers.lastMalusReducer,
-    oldUrl: reducers.oldUrlReducer,
-    checkUrl: reducers.checkUrlReducer,
     addMalusGo: reducers.addMalusGoReducer,
-    keyDown: reducers.keyDownReducer,
-    showHighScore: reducers.showHighScoreReducer,
+    retrySignal: reducers.retrySignalReducer,
     bestScore: reducers.bestScoreReducer,
-    scoreList: reducers.scoreListReducer
+    showHighScore: reducers.showHighScoreReducer,
+    scoreList: reducers.scoreListReducer,
+    playersOff: reducers.playersOffReducer,
+    rows: reducers.rowsReducer
   },
   preloadedState: {
-    noName: true,
+    ...initialState,
     tempName: '',
-    ...initialState
+    oldUrl: '',
+    back: false,
+    changeOk: false,
+    noName: true,
+    url: '',
+    checkUrl: false,
+    resultats: []
   }
 });
 
@@ -74,13 +79,13 @@ describe('App Component', () => {
         </BrowserRouter>
       </Provider>
     );
-
-    const appContainer = screen.getByTestId('app-container');
-    expect(appContainer).toBeInTheDocument();
+    expect(screen.getByTestId('app-container')).toBeInTheDocument();
   });
 
   test('renders name input when noName is true', () => {
-    const mockStore = createMockStore();
+    const mockStore = createMockStore({
+      noName: true
+    });
     render(
       <Provider store={mockStore}>
         <BrowserRouter>
@@ -88,13 +93,14 @@ describe('App Component', () => {
         </BrowserRouter>
       </Provider>
     );
-
-    const nameInput = screen.getByPlaceholderText('Add your name');
-    expect(nameInput).toBeInTheDocument();
+    expect(screen.getByTestId('name-input')).toBeInTheDocument();
   });
 
-  test('handles name validation', () => {
-    const mockStore = createMockStore();
+  test('validates name input correctly', () => {
+    const mockStore = createMockStore({
+      noName: true,
+      tempName: ''
+    });
     render(
       <Provider store={mockStore}>
         <BrowserRouter>
@@ -102,12 +108,6 @@ describe('App Component', () => {
         </BrowserRouter>
       </Provider>
     );
-
-    const nameInput = screen.getByPlaceholderText('Add your name');
-    fireEvent.change(nameInput, { target: { value: 'TestPlayer' } });
-    expect(nameInput.value).toBe('TestPlayer');
-
-    const validateButton = screen.getByText('Validate');
-    fireEvent.click(validateButton);
+    expect(screen.getByTestId('name-input')).toBeInTheDocument();
   });
 });

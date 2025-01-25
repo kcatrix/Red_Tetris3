@@ -56,9 +56,6 @@ function App() {
       dispatch(changeOldUrl(checkUrl));
       navigate("/");
     }
-    if (checkUrl && checkUrl.length > 3 && !back) {
-      dispatch({ type: 'URL_CHECK' });
-    }
     if (back) {
       dispatch(changeOldUrl(""));
       dispatch(changeUrl(location.pathname));
@@ -68,6 +65,12 @@ function App() {
       navigate("/");
     }
   }, [back, checkUrl, dispatch, location.pathname, navigate, tempName.length]);
+
+  useEffect(() => {
+    if (checkUrl && checkUrl.length > 3 && !back) {
+      dispatch({ type: 'URL_CHECK' });
+    }
+  }, [back, checkUrl, dispatch]);
 
   useEffect(() => {
     if (changeOk && oldUrl.length > 0 && !noName && !back) {
@@ -108,7 +111,7 @@ function App() {
       <Routes>
         {!noName && (
           <Route path="/:roomId/:name" element={
-            <div>
+            <div data-testid="game-container">
               <MultiGame/>
             </div>
           }/>
@@ -116,12 +119,12 @@ function App() {
         <Route path="/" element={
           <>
             {!noName && (
-              <div className="button">
-                <button onClick={() => dispatch(createRoomOn())}>Create Room</button>
+              <div className="button" data-testid="create-room-container">
+                <button onClick={() => dispatch(createRoomOn())} data-testid="create-room-button">Create Room</button>
               </div>
             )}
             {noName && (
-              <div>
+              <div data-testid="name-input-container">
                 <input
                   type="text"
                   id="name"
@@ -133,8 +136,9 @@ function App() {
                   size="10"
                   value={tempName}
                   onChange={handleInputChange}
+                  data-testid="name-input"
                 />
-                <button onClick={handleValidation}>Validate</button>
+                <button onClick={handleValidation} data-testid="validate-button">Validate</button>
               </div>
             )}
           </>

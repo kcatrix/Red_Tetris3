@@ -20,6 +20,7 @@ import pieceReducer from './pieceSlice';
 import playersOffReducer from './playersOffSlice';
 import playersReducer from './playersSlice';
 import positionsReducer from './positionsSlice';
+import resultatsReducer from './resultatsSlice';
 import retrySignalReducer from './retrySignalSlice';
 import rowsReducer from './rowsSlice';
 import scoreListReducer from './scoreListSlice';
@@ -53,6 +54,7 @@ export {
   playersOffReducer,
   playersReducer,
   positionsReducer,
+  resultatsReducer,
   retrySignalReducer,
   rowsReducer,
   scoreListReducer,
@@ -61,5 +63,5 @@ export {
   startPieceReducer,
   tempNameReducer,
   timeReducer,
-  urlReducer
+  urlReducer,
 };
